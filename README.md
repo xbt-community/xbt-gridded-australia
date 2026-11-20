@@ -67,9 +67,31 @@ export XBT_OUT_DIR=/path/to/where/i/want/output
 export GEBCO_PATH=/path/to/gebco_30sec.nc
 
 # Run the main matlab control script from MATLAB command line or script
-# In MATLAB:
-% cd('matlab');
-% run('grid_control.m');
+# Open MATLAB and set input variables:
+
+data_dir = "/path/to/vertically/gridded/netcdf/files"
+out_data_dir = "/path/to/output/folder"
+bathy_fnm = "/path/to/gebco/bathymetry/file"
+transects = {"IX01","PX30"} %example
+remake = True % optional argument where True will remove all existing mat files made in previous gridding runs
+
+# Run the spatial gridding code
+create_matlab_grid(data_dir,out_data_dir, bathy_fnm, transects, remake)
+
 ```
 
-If you prefer, place required files under `data/` in the repository root using the same structure expected by the scripts (e.g. `data/PX34_32/transect_files/` and `data/bath/gebco08_30sec.nc`).
+If you prefer, place required files under `data/` in the repository root using the same structure expected by the scripts (e.g. `data/PX34/transect_files/` and `data/bath/gebco08_30sec.nc`).
+
+
+## Optional output *.mat files from spatial gridding to netCDF:
+In Python 3.11+
+
+```
+python matgrid2netcdf.py <matlab_file_path> <output_folder> [globals_file_path] [vars_file_path] [source_url]
+```
+
+- `matlab_file_path` may be a local folder containing `.mat` files from the spatial gridding step
+- `output_folder` is a local folder for the output netCDF files
+- `globals_file_path` is an optional argument containing the path to the netCDF globals attributes. Default is 'netcdfGlobalAtts_transect.csv' in the xbt-gridded-australia directory
+- `vars_file_path`  is an optional argument containing the path to the netCDF variables and variable attributes. Default is 'netcdfVars_transect.csv' in the xbt-gridded-australia directory
+- `source_url` optional, do not fill for this code
