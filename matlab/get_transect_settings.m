@@ -92,7 +92,7 @@ elseif strcmp('IX31', transect)%needs checking
     gaps = 4;
     e1 = 20;
     xp = [116 116 143 143];
-    yp = [-45 -42 -42 -45];  
+    yp = [-40 -30 -30 -40];  
 elseif strcmp('IX02', transect)
     orientation = 1;
     grid = 31.3:0.5:116;
@@ -114,6 +114,13 @@ elseif strcmp('IX06', transect) % needs refining
     e1 = 20;
     xp = [58 58 110 110];
     yp = [-31 10 10 -31];  
+elseif strcmp('Pacific-Ocean', transect) 
+    orientation = 1; %east-west, following PX30
+    grid = 153:0.1:178;
+    gaps = 2;
+    e1 = 40; % 
+    xp = [153 153 178.7 178.7];
+    yp = [-43 0 0 -43 ];
 else
     disp(['transect argument is not coded in yet for ' transect])
     settings = [];

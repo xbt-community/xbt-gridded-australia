@@ -34,6 +34,9 @@ end
 % update the xbt variables to match the sorting
 xbt.TIME = xbt.TIME(I);
 xbt.TEMP = xbt.TEMP(:,I);
+xbt.TEMP_uncorrected = xbt.TEMP_uncorrected(:,I);
+xbt.TEMP_including_surface = xbt.TEMP_including_surface(:,I);
+xbt.TEMP_including_surface_uncorrected = xbt.TEMP_including_surface_uncorrected(:,I);
 bath = bath(I);
 
 

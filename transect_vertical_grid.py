@@ -548,28 +548,42 @@ def process_single_file(filepath, v_grid, catalog_updated=None, source_transect_
         else:
             print(f'No XBT probe type attribute found in {filepath}; skipping CH14 correction')
         
-        # Remove bad data where TEMP_quality_control is not 0, 1, 2, or 5 and where temperatures are less than -5 or greater than 40
-        valid_mask = np.isin(temp_quality_control, [0, 1, 2, 5]) & (temperatures >= -5) & (temperatures <= 40)
-        depths = depths[valid_mask]
-        temperatures = temperatures[valid_mask]
-        corrected_depths = corrected_depths[valid_mask]
-        corrected_temperatures = corrected_temperatures[valid_mask]
+        # BEST quallity: Exclude data where TEMP_quality_control is not 0, 1, 2, or 5
+        valid_mask = np.isin(temp_quality_control, [0, 1, 2, 5])
+        # Next best quality, include surface data even if TEMP_quality_control is not 0, 1, 2, or 5. Where depth < 5m
+        surface_mask = depths < 5
+        depths_best = depths[valid_mask]
+        temperatures_best = temperatures[valid_mask]
+        depths_best_corrected = corrected_depths[valid_mask]
+        temperatures_best_corrected = corrected_temperatures[valid_mask]
+        depths_incl_surface = np.concatenate([depths[surface_mask], depths_best])
+        temperatures_incl_surface = np.concatenate([temperatures[surface_mask], temperatures_best])
+        depths_incl_surface_corrected = np.concatenate([corrected_depths[surface_mask], depths_best_corrected])
+        temperatures_incl_surface_corrected = np.concatenate([corrected_temperatures[surface_mask], temperatures_best_corrected])
 
         # if there is no valid data, return None
-        if len(temperatures) == 0:
+        if len(temperatures_best) == 0:
             print('No valid temperature data in file: %s' % filepath)
             return None
 
         # grid the uncorrected data first so it is unaffected by the CH14 correction below
-        interp_temps_uncorrected = vinterp_gauss_simple(depths, temperatures, v_grid, half_width=11)
+        interp_temps_best_uncorrected = vinterp_gauss_simple(depths_best, temperatures_best, v_grid, half_width=11)
 
         # return interpolated gaussian smoothed data on with 10m intervals from 0 to 1800m
-        interp_temps = vinterp_gauss_simple(corrected_depths, corrected_temperatures, v_grid, half_width=11)
+        interp_temps_best_corrected = vinterp_gauss_simple(depths_best_corrected, temperatures_best_corrected, v_grid, half_width=11)
+
+        # return uncorrected interpolated gaussian smoothed data with surface data included
+        interp_temps_incl_surface_uncorrected = vinterp_gauss_simple(depths_incl_surface, temperatures_incl_surface, v_grid, half_width=11, extrapolate_surface=True)
+
+        # return interpolated gaussian smoothed data including surface data even if not best quality
+        interp_temps_incl_surface = vinterp_gauss_simple(depths_incl_surface_corrected, temperatures_incl_surface_corrected, v_grid, half_width=11, extrapolate_surface=True)
 
         # Return structured data instead of appending to lists
         return {
-            'temps': interp_temps,
-            'temps_uncorrected': interp_temps_uncorrected,
+            'interp_temps_best_corrected': interp_temps_best_corrected,
+            'interp_temps_best_uncorrected': interp_temps_best_uncorrected,
+            'interp_temps_incl_surface': interp_temps_incl_surface,
+            'interp_temps_incl_surface_uncorrected': interp_temps_incl_surface_uncorrected,
             'lat': lat,
             'lon': lon,
             'time': time,
@@ -842,8 +856,10 @@ def clean_and_grid_transect(input_directories, output_directory, file_entries=No
 
         # Keep one row per profile and defer depth expansion to transect write-out.
         profiles_df = pd.DataFrame({
-            'TEMP_PROFILE': [np.asarray(r['temps'], dtype=np.float32) for r in profile_results],
-            'TEMP_PROFILE_uncorrected': [np.asarray(r['temps_uncorrected'], dtype=np.float32) for r in profile_results],
+            'TEMP_PROFILE': [np.asarray(r['interp_temps_best_corrected'], dtype=np.float32) for r in profile_results],
+            'TEMP_PROFILE_uncorrected': [np.asarray(r['interp_temps_best_uncorrected'], dtype=np.float32) for r in profile_results],
+            'TEMP_including_surface': [np.asarray(r['interp_temps_incl_surface'], dtype=np.float32) for r in profile_results],
+            'TEMP_including_surface_uncorrected': [np.asarray(r['interp_temps_incl_surface_uncorrected'], dtype=np.float32) for r in profile_results],
             'LATITUDE': np.asarray([r['lat'] for r in profile_results], dtype=np.float32),
             'LONGITUDE': np.asarray([r['lon'] for r in profile_results], dtype=np.float32),
             'TIME': pd.to_datetime([r['time'] for r in profile_results]),
@@ -930,13 +946,28 @@ def clean_and_grid_transect(input_directories, output_directory, file_entries=No
                 columns=transect_profiles['TIME'].to_numpy()
             )
 
+            temp_matrix_incl_surface = np.vstack(transect_profiles['TEMP_including_surface'].to_numpy())
+            pivot_df_incl_surface = pd.DataFrame(
+                temp_matrix_incl_surface.T,
+                index=v_grid,
+                columns=transect_profiles['TIME'].to_numpy()
+            )
+
+            temp_matrix_incl_surface_uncorrected = np.vstack(transect_profiles['TEMP_including_surface_uncorrected'].to_numpy())
+            pivot_df_incl_surface_uncorrected = pd.DataFrame(
+                temp_matrix_incl_surface_uncorrected.T,
+                index=v_grid,
+                columns=transect_profiles['TIME'].to_numpy()
+            )
+
             metadata_df = transect_profiles[
                 ['LATITUDE', 'LONGITUDE', 'TIME', 'SOOP_line', 'SOOP_line_description',
                 'Cruise_ID', 'Institution_unique_identifier', 'transect_id', 'filename', 'profile_number', 'catalog_updated']
             ].reset_index(drop=True)
 
             # now use write2netcdf function to write the transect to a netcdf file
-            write_vert_grid_nc(output_directory, metadata_df, pivot_df, data_df_uncorrected=pivot_df_uncorrected,
+            write_vert_grid_nc(output_directory, metadata_df, pivot_df, data_df_uncorrected=pivot_df_uncorrected,data_df_incl_surface=pivot_df_incl_surface,
+                            data_df_incl_surface_uncorrected=pivot_df_incl_surface_uncorrected,
                             globals_file_path='netcdfGlobalAtts.csv', vars_file_path='netcdfVars.csv', source_url=source_url)
 
 

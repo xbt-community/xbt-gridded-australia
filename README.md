@@ -1,9 +1,10 @@
-### Code under development for gridding XBT data and creating output files of the products
+### Python and Matlab code developed for gridding the Australian region XBT transect data and creating output files of the products
 
 
 ### Data sources and reference information
-This repository is associated with the following data source:
+This repository is associated with the following data sources:
 - Cowley, Rebecca; Krummel, Lisa; McMahon, Aidan; Hanstein, Craig; Parker, Ashley; Sloyan, Bernadette; Chapman, Chris; & Ridgway, Ken (2026): Australian XBT Ship of Opportunity gridded data collection. v1. CSIRO. Data Collection. https://data.csiro.au/collection/csiro:73479
+- AODN (Australian Ocean Data Network) XBT Delayed Mode data collection. The IMOS XBT sub-Facility, including data access is described [here](https://imos.org.au/facility/ships-of-opportunity/expendable-bathythermographs). The code accesses the [THREDDS data service](https://thredds.aodn.org.au/thredds/catalog/IMOS/SOOP/SOOP-XBT/catalog.html).
 
 The article describing the data collection and gridding methods is in preparation. For more information about the data collection, please see the CSIRO Data Collection page linked above.
 
@@ -33,11 +34,15 @@ conda install -c conda-forge netcdf4 xarray numpy pandas scipy beautifulsoup4 re
 3. Run the transect gridding script:
 
 ```
-python transect_vertical_grid.py <input_directory_or_url> <output_directory>
+python transect_vertical_grid.py <input_directory_or_url> <output_directory> --v-grid-step 2 --max-depth 1000
 ```
 
-- `input_directory_or_url` may be a local folder containing `.nc` files or a THREDDS catalog URL.
+- `input_directory_or_url` may be a local folder containing `.nc` files or any level of the [AODN SOOP XBT THREDDS catalog URL](https://thredds.aodn.org.au/thredds/catalog/IMOS/SOOP/SOOP-XBT/catalog.html).
 - `output_directory` will receive the generated netCDF files.
+- `--v-grid-step` is the depth interval for the vertical gridding in meters
+- `--max-depth` is the maximum depth to grid the data to in meters
+
+Note the code is set up to handle the AODN format of XBT data. It will need adjusting if a different input format is used.
 
 ## Notes for contributors and external users
 

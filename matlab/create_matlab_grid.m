@@ -89,6 +89,7 @@ for itrans = 1:length(transects)
             %out file
             outfile = char(fullfile(out_dir, xbt.atts.transect_id));
             trans_id = xbt.atts.transect_id;
+            soop_description = xbt.atts.SOOP_line_description;
 
             if isempty(xbt)
                 disp(['Entire occupation removed from gridding ' trans_id])
@@ -120,7 +121,7 @@ for itrans = 1:length(transects)
         end
         % join all the data together into one product
         if first
-            temps = zeros(length(xbt.DEPTH),length(xbt.LAT_grid),length(fnames));
+            [temps,temps_uncorrected,temps_surf,temps_surf_uncorrected] = deal(zeros(length(xbt.DEPTH),length(xbt.LAT_grid),length(fnames)));
             [lons,lats,times] = deal(NaN*ones(length(xbt.LAT_grid),length(fnames)));
             lons_orig = [];lats_orig = [];times_orig = []; transect_id = [];
             depths = xbt.DEPTH;
@@ -129,6 +130,9 @@ for itrans = 1:length(transects)
         end
         if isfield(xbt,'TEMP_interp')
             temps(:,:,a) = xbt.TEMP_interp;
+            temps_uncorrected(:,:,a) = xbt.TEMP_interp;
+            temps_surf(:,:,a) = xbt.TEMP_surf_interp;
+            temps_surf_uncorrected(:,:,a) = xbt.TEMP_surf_uncorrected_interp;
             lats(:,a) = xbt.LAT_grid;
             lons(:,a) = xbt.LON_grid;
             times(:,a) = datenum(xbt.TIME_grid);
@@ -143,15 +147,21 @@ for itrans = 1:length(transects)
         %number of profiles
         num_profiles(a) = length(xbt.TIME);
     end
+    if length(fnames) == 1 & length(xbt.TIME) < 3
+        continue
+    end
     % sort the data by time
     [ti,ind] = sort(ti);
     temps = temps(:,:,ind);
+    temps_uncorrected = temps_uncorrected(:,:,ind);
+    temps_surf = temps_surf(:,:,ind);
+    temps_surf_uncorrected = temps_surf_uncorrected(:,:,ind);
     lats = lats(:,ind);
     lons = lons(:,ind);
     times = times(:,ind);
     transect_id = transect_id(ind);
     % remove data not in polygon
-    [temps,lats,lons,times,num_profiles,ti,transect_id] = check_transect_location(temps, lats,lons,times,num_profiles,ti,transect_id, transect,settings);
+    [temps,temps_uncorrected,temps_surf,temps_surf_uncorrected,lats,lons,times,num_profiles,ti,transect_id] = check_transect_location(temps,temps_uncorrected,temps_surf,temps_surf_uncorrected, lats,lons,times,num_profiles,ti,transect_id, transect,settings);
     
     if isempty(temps)
         disp(['No data falls in the polygon for transect ' transect])
@@ -171,8 +181,9 @@ for itrans = 1:length(transects)
     % save to a mat file for plotting
     outfnm = fullfile(out_dir,[transect '_all.mat']);
     save(outfnm, ...
-        "transect_id","ti","times", "lons", "lats","temps","depths","bath","ref_locs","num_profiles", ...
-        "lons_orig","lats_orig","times_orig")
+        "transect_id","ti","times", "lons", "lats","temps","temps_uncorrected", ...
+        "temps_surf","temps_surf_uncorrected","depths","bath","ref_locs","num_profiles", ...
+        "lons_orig","lats_orig","times_orig","soop_description")
     disp(['Completed ' transect])
 end
 end
