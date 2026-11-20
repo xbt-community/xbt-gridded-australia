@@ -966,7 +966,8 @@ def clean_and_grid_transect(input_directories, output_directory, file_entries=No
             ].reset_index(drop=True)
 
             # now use write2netcdf function to write the transect to a netcdf file
-            write_vert_grid_nc(output_directory, metadata_df, pivot_df, data_df_uncorrected=pivot_df_uncorrected,
+            write_vert_grid_nc(output_directory, metadata_df, pivot_df, data_df_uncorrected=pivot_df_uncorrected,data_df_incl_surface=pivot_df_incl_surface,
+                            data_df_incl_surface_uncorrected=pivot_df_incl_surface_uncorrected,
                             globals_file_path='netcdfGlobalAtts.csv', vars_file_path='netcdfVars.csv', source_url=source_url)
 
 

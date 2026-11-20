@@ -125,15 +125,21 @@ def write_vert_grid_nc(output_folder, transect_df, data_df, data_df_uncorrected=
         temp_data = data_df.to_numpy(dtype=np.float32, copy=True).T
         np.nan_to_num(temp_data, copy=False, nan=np.float32(vars[vars['variable_name'] == 'TEMP'].iloc[0]['fillValue']))
 
-        # uncorrected TEMP is left empty if not supplied.
+        # uncorrected TEMP is left empty if not supplied
+        if data_df_uncorrected is None:
+            data_df_uncorrected = pd.DataFrame(index=data_df.index, columns=data_df.columns)
         temp_data_uncorrected = data_df_uncorrected.to_numpy(dtype=np.float32, copy=True).T
         np.nan_to_num(temp_data_uncorrected, copy=False, nan=np.float32(vars[vars['variable_name'] == 'TEMP_uncorrected'].iloc[0]['fillValue']))
 
         # TEMP including surface
+        if data_df_incl_surface is None:
+            data_df_incl_surface = pd.DataFrame(index=data_df.index, columns=data_df.columns)
         temp_data_incl_surface = data_df_incl_surface.to_numpy(dtype=np.float32, copy=True).T
         np.nan_to_num(temp_data_incl_surface, copy=False, nan=np.float32(vars[vars['variable_name'] == 'TEMP_including_surface'].iloc[0]['fillValue']))
 
         # TEMP including surface uncorrected
+        if data_df_incl_surface_uncorrected is None:
+            data_df_incl_surface_uncorrected = pd.DataFrame(index=data_df.index, columns=data_df.columns)
         temp_data_incl_surface_uncorrected = data_df_incl_surface_uncorrected.to_numpy(dtype=np.float32, copy=True).T
         np.nan_to_num(temp_data_incl_surface_uncorrected, copy=False, nan=np.float32(vars[vars['variable_name'] == 'TEMP_including_surface_uncorrected'].iloc[0]['fillValue']))
 
