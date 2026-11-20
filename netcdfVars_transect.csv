@@ -1,0 +1,11 @@
+﻿variable_name,Dimensions,is_cf_compliant (1=yes 0=no)),variable_type,fillValue,att_comment,att_coordinates,att_standard_name,att_long_name,att_calendar,att_units,att_axis,att_valid_min,att_valid_max,att_reference_datum,att_positive
+TIME,TIME,1,f8,,mean time of the occupation,,time,time,gregorian,days since 1950-01-01 00:00:00 UTC,T,0,90000,,
+DEPTH,DEPTH,1,f4,,,,depth,depth,,m,Z,-5,12000,sea surface,down
+LATITUDE,TBD,1,f8,-9999,,,latitude,latitude,,degrees_north,Y,-90,90,"geographical coordinates, WGS84 projection",
+LONGITUDE,TBD,1,f8,-9999,,,longitude,longitude,,degrees_east,X,-180,180,"geographical coordinates, WGS84 projection",
+TEMP,"TIME,DEPTH,LATITUDE,LONGITUDE",1,f4,-9999,seawater temperature data with Cheng2014 corrections applied,TIME DEPTH LATITUDE LONGITUDE,sea_water_temperature,sea water temperature,,Celsius,,-2.5,40,,
+TEMP_uncorrected,"TIME,DEPTH,LATITUDE,LONGITUDE",1,f4,-9999,seawater temperature data with no corrections applied,TIME DEPTH LATITUDE LONGITUDE,sea_water_temperature,sea water temperature,,Celsius,,-2.5,40,,
+TEMP_including_surface,"TIME,DEPTH,LATITUDE,LONGITUDE",1,f4,-9999,seawater temperature data including surface temperatures with Cheng2014 corrections applied,TIME LATITUDE LONGITUDE DEPTH,sea_water_temperature,sea water temperature,,Celsius,,-2.5,40,,
+TEMP_including_surface_uncorrected,"TIME,DEPTH,LATITUDE,LONGITUDE",1,f4,-9999,seawater temperature data including surface temperatures with no corrections applied,TIME LATITUDE LONGITUDE DEPTH,sea_water_temperature,sea water temperature,,Celsius,,-2.5,40,,
+transect_id,"TIME,str60",0,S1,,,,,transect identifier,,,,,,,
+number_of_profiles,TIME,0,uint32,,number of XBT profiles used to grid this occupation,,,number of profiles,,,,0,5000,,
