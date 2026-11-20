@@ -1,4 +1,4 @@
-function [temp,latitudes,longitudes,times,num_profiles,ti,transect_id] = check_transect_location(temp, latitudes,longitudes,times,num_profiles,ti,transect_id, transect, settings)
+function [temp,temp2, temp3,temp4,latitudes,longitudes,times,num_profiles,ti,transect_id] = check_transect_location(temp, temp2, temp3, temp4, latitudes,longitudes,times,num_profiles,ti,transect_id, transect, settings)
 % Check the lats and lons arrays are within a defined polygon boundary.
 % Remove the entire transect from the data if it does not meet the percent
 % criteria
@@ -30,6 +30,9 @@ for ind = 1:size(latitudes,2)
 end
 % remove the failed lines
 temp(:,:,irem) = [];
+temp2(:,:,irem) = [];
+temp3(:,:,irem) = [];
+temp4(:,:,irem) = [];
 latitudes(:,irem) = [];
 longitudes(:,irem) = [];
 times(:,irem) = [];
