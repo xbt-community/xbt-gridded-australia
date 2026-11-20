@@ -3,11 +3,12 @@ import numpy as np
 from scipy.interpolate import interp1d
 from scipy.ndimage import gaussian_filter1d
 
-def vinterp_gauss_simple(depths, data, v_grid, half_width=11):
+def vinterp_gauss_simple(depths, data, v_grid, half_width=11, extrapolate_surface=False):
     """
     Simplified vertical smoothing using scipy's gaussian_filter1d
 
     Works best when depths are regularly spaced.
+    Linearly extrapolates only from depth 0 to the first valid depth.
     """
     depths = np.asarray(depths).flatten()
     data = np.asarray(data).flatten()
@@ -37,5 +38,12 @@ def vinterp_gauss_simple(depths, data, v_grid, half_width=11):
     interp_func = interp1d(depths, data_smooth, kind='linear',
                     bounds_error=False, fill_value=np.nan)
     zsmooth = interp_func(v_grid)
+    if extrapolate_surface:
+        shallow = (v_grid >= 0) & (v_grid < depths[0])
+        zsmooth[shallow] = data_smooth[0] + (
+            (v_grid[shallow] - depths[0])
+            * (data_smooth[1] - data_smooth[0])
+            / (depths[1] - depths[0])
+        )
 
     return zsmooth
